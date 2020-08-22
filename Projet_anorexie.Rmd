@@ -1,0 +1,373 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+
+<head>
+<style>
+p.content {
+          text-align: justify;
+}
+table.double { 
+              border-style: outset;
+              padding-right: 20px;
+              padding-left: 10px;
+              margin-top: 20px;
+              width: 100%;
+              height: 150%;
+              }
+</style>
+</head>
+<body>
+<table class="double">
+<tr>
+  <td style="padding-left: 3px"> <b>Sorbonne Université</b> <br><br> 4M015: <b>Statistiques descriptives </b> <br> <br>Mini Projet N°1 : <i> <b>Etude des données anorexiques</b></i> </td>
+  <td align="right"  width="50%"> Flaude <br> Mamadou <br> <br> </td>
+  <td style="padding-right: 3px" align="right"> BANZA <br> NDOYE  <br> <br> </td>
+</tr>
+</table>
+<!-- INTRODUCTION -->
+<br><br>
+<h4><b>Introduction</b></h4>
+<br>
+<div style="text-align: justify">
+Ce travail a été réalisé en binôme dans la cadre des mini-projets de l'UE 4M015 de Statistiques de premiére année de master de Mathématiques et Applications de Sorbonne Université.<br><br>
+L'objectif principal de l'étude est de comparer les deux types de traitements et leurs effets sur des personnes anorexiques qui ont été suivies pendant une période dite observatoire. Certains patients ont suivi une thérapie (soit une _thérapie familiale_ 'FT',soit la thérapie _Cognitive Behavioural Treatment_ 'CBT'), d'autres n'ont suivi aucun traitement (c'est le groupe de contrôle 'Cont').<br>
+La table de données établie lors d'une étude clinique contient pour chaque individu le type de thérapie et son poids au début et à la fin de l'étude (en livres).<br><br>
+Afin de déterminer laquelle des thérapies est la plus efficace ou si certains traitements n'ont pas de résultats positifs(voire ont des résultats négatifs)  sur la santé des patients, nous jugerons nécessaire de diviser notre étude en cinq parties.<br>
+Premiérement nous commenterons les données initiales, puis nous les analyserons. <br>
+Ensuite, nous traiterons le groupe de contrôle séparément, et nous verrons en quoi il constitue le témoin de cette expérience.<br>
+Cela nous permettra également de pouvoir comparer les deux autres groupes entre eux. Et, enfin, rechercher s'il existe ou non un modéle de prévision au traitement _'CBT'_.
+</div>
+<br>
+```{r echo=FALSE, include= FALSE}
+#Importation du data.frame:
+ano <- read.table(file = "DonneesAnorexie.txt",header = TRUE)
+#Conversion du poids en [kg]:
+ano$pre <- ano$pre*0.453
+ano$post <- ano$post*0.453
+#Extraction des données par types de traitements:
+ano_Cont <- ano[which(ano$trait=='Cont'),]
+ano_FT <- ano[which(ano$trait=='FT'),]
+ano_CBT <- ano[which(ano$trait=='CBT'),]
+```
+```{r echo=FALSE, warning=FALSE, include= FALSE}
+c1 <- c('FT','CBT','Cont')
+c2 <- c(nrow(ano_FT),nrow(ano_CBT),nrow(ano_Cont))
+c3 <- c(paste(round(mean(ano_FT$pre),1)," kg"),paste(round(mean(ano_CBT$pre),1)," kg"),paste(round(mean(ano_Cont$pre),1)," kg"))
+c4 <- c(paste(round(mean(ano_FT$post),1),"kg"),paste(round(mean(ano_CBT$post),1),"kg"),paste(round(mean(ano_Cont$post),1),"kg"))
+presentation <- data.frame(c1,c2,c3,c4)
+names(presentation) <- c('Type de thérapie','Nombre de Patients','    Poids moyen initial','Poids moyen final')
+library(knitr)
+```
+
+<!-- QUESTION 1 -->
+<h4>I. Distributions des groupes à l'état initial</h4>
+<table style="width: 100%;padding-top: 20px">
+<tr>
+  <td align="top-left">
+  Dans le tableau ci-contre sont représentés:<br><br>
+<ol>
+<li>Les _types_ de thérapies suivis par les patients,</li>
+<li>Le _nombre_ de patients dans chaque thérapie,</li>
+<li>La moyenne du poids des patients _avant_ traitement,</li>
+<li>La moyenne du poids des patients _après_ traitement.</li>
+</ol>
+  </td>
+  <td style="width: 50%">
+`r kable(presentation)`
+  </td>
+</tr>
+</table>
+<table style="width: 100%">
+<tr>
+  <td style="width: 50%;text-align: justify">
+<table style="text-align: justify">
+<tr>
+  <td style="padding-bottom: 40px">La _figure I.1_ illustre la répartition des différents poids pour chacun des groupes au début de l'étude.
+  </td>
+</tr>
+<tr>
+  <td style="padding-bottom: 40px">Le nombre de patients n'est pas le même dans tous les groupes, mais nous constatons que la distribution initiale du poids est relativement identique à l'intérieur des deux groupes de traitements _'FT'_ et _'CBT'_.
+  </td>
+</tr>
+<tr>
+  <td>En effet, les médianes des boîtes à moustaches situées ci-contre scindent les deux groupes en deux parties égales approximativement autour de la même valeur.
+  </td>
+</tr>
+</table>
+  </td>
+  <td style="width: 50%;padding-left: 15px">
+  <br>
+```{r echo=FALSE,fig.height=8,fig.width=8,warning=F,message=FALSE}
+boxplot(ano$pre~ano$trait,main = "Figure I.1- Repartition avant traitement du poids dans chacun des groupes",ylab="Poids [kg]")
+grid()
+```
+  </td>
+</tr>
+</table>
+<!-- QUESTION 2 -->
+<h4>II. Methodes de choix du meilleur traitement</h4>
+<div style="text-align: justify;margin-bottom: 50px;padding-top: 20px">
+La comparaison du poids moyen, avant et après traitements ne peut constituer une base d'analyse comparative entre les traitements.<br>
+En effet, il serait impossible de connaître les effets d'un traitement par une étude exclusive à un temps donné (avant ou après).<br>
+Il paraît cependant tout à fait judicieux de mettre en perspective les évolutions des distributions associées à chacun des trois groupes.<br> 
+Dans un deuxième temps, nous tâcherons d'illustrer l'accroissement du poids moyen dans chacun des groupes.
+</div>
+<table style="width: 100%">
+<tr>
+  <td style="width: 33.33%;border-right: 1px solid black;padding-right: 15px">
+```{r echo=FALSE,fig.height=5.25,fig.width=5}
+boxplot(ano_FT[,c(2,3)],main="Groupe 'FT'",col=c("lightblue","pink"),ylab="Poids [kg]",ylim=c(min(ano[,c(2,3)]),max(ano[,c(2,3)])))
+grid()
+```
+  </td>
+  <td style="width: 33.33%;border-right: 1px solid black;padding-left: 15px;padding-right: 15px">
+```{r echo=FALSE,fig.height=5.25,fig.width=5}
+boxplot(ano_CBT[,c(2,3)],main="Groupe 'CBT'",col=c("lightblue","pink"),ylab="Poids [kg]",ylim=c(min(ano[,c(2,3)]),max(ano[,c(2,3)])))
+grid()
+```
+  </td>
+  <td style="width: 33.33%;padding-left: 15px">
+```{r echo=FALSE,fig.height=5.25,fig.width=5}
+boxplot(ano_Cont[,c(2,3)],main="Groupe 'Cont'",col=c("lightblue","pink"),ylab="Poids [kg]",ylim=c(min(ano[,c(2,3)]),max(ano[,c(2,3)])))
+grid()
+```
+  </td>
+</tr>
+<tr>
+  <td style="width: 33.33%;border-right: 1px solid black;padding-right: 15px">
+```{r echo=FALSE}
+titres.tabl_FT <- c("Maximum","Mediane","Minimum")
+q.pre_FT <- round(c(max(ano_FT$pre),median(ano_FT$pre),min(ano_FT$pre)),2)
+q.post_FT <- round(c(max(ano_FT$post),median(ano_FT$post),min(ano_FT$post)),2)
+tabl_FT <- data.frame(titres.tabl_FT,q.pre_FT,q.post_FT)
+names(tabl_FT) <- c("'FT' en [kg]","Avant","Apres")
+```
+  `r kable(tabl_FT)`
+  </td>
+  <td style="width: 33.33%;border-right: 1px solid black;padding-left: 15px;padding-right: 15px">
+```{r echo=FALSE}
+titres.tabl_CBT <- c("Maximum","Mediane","Minimum")
+q.pre_CBT <- round(c(max(ano_CBT$pre),median(ano_CBT$pre),min(ano_CBT$pre)),2)
+q.post_CBT <- round(c(max(ano_CBT$post),median(ano_CBT$post),min(ano_CBT$post)),2)
+tabl_CBT <- data.frame(titres.tabl_CBT,q.pre_CBT,q.post_CBT)
+names(tabl_CBT) <- c("'CBT' en [kg]","Avant","Apres")
+```
+  `r kable(tabl_CBT)`
+  </td>
+  <td style="width: 33.33%;padding-left: 15px">
+```{r echo=FALSE}
+titres.tabl_Cont <- c("Maximum","Mediane","Minimum")
+q.pre_Cont <- round(c(max(ano_Cont$pre),median(ano_Cont$pre),min(ano_Cont$pre)),2)
+q.post_Cont <- round(c(max(ano_Cont$post),median(ano_Cont$post),min(ano_Cont$post)),2)
+tabl_Cont <- data.frame(titres.tabl_Cont,q.pre_Cont,q.post_Cont)
+names(tabl_Cont) <- c("'Cont' en [kg]","Avant","Apres")
+```
+  `r kable(tabl_Cont)`
+  </td>
+</tr>
+<tr>
+  <td style="width: 33.33%;border-right: 1px solid black;text-align: justify;padding-right: 15px">
+Nous constatons que le groupe 'FT' de la thérapie familiale, est, dans toute sa globalité et y compris aux extremums, en nette hausse.<br>
+Passant de 42kg à 46kg pour le maximum, et de 38kg à 42kg pour la médiane
+  </td>
+  <td style="width: 33.33%;border-right: 1px solid black;text-align: justify;padding-left: 15px;padding-right: 15px">
+  
+Il y a une légère hausse de la médianne, passant de 37kg à 38kg.<br>
+Le Maximum quant à lui est en nette augmentation allant de 43kg à 47kg.
+  </td>
+  <td style="width: 33.33%;text-align: justify;padding-left: 15px">
+Mise à part une légère contraction dans les extrémums, le groupe 'Cont' reste inchangé.<br>
+La médianne divisant en deux le groupe autour de 36,5kg
+  </td>
+</tr>
+</table>
+
+<table style="width: 100%;margin-top: 50px">
+<tr>
+  <td style="width: 50%">
+Dans le tableau ci-contre sont représentés:<br><br>
+<ol>
+<li>Le _nombre_ de patients qui sont en prise de poids à l'issue de l'étude, auquel nous précisons le _nombre total_ de patients par groupe,</li>
+<li>Le pourcentage de _réussite_ du traitement, c'est-à-dire le pourcentage des patients prenant du poids par traitements,</li>
+<li>La _prise (ou perte) moyenne_ de poids par groupes.</li>
+</ol>
+  </td>
+  <td style="width: 50%">
+```{r echo=FALSE}
+ano_Cont$diff <- ano_Cont$post - ano_Cont$pre
+ano_FT$diff <- ano_FT$post - ano_FT$pre
+ano_CBT$diff <- ano_CBT$post - ano_CBT$pre
+a1 <- sum(ano_Cont$diff > 0)
+a2 <- sum(ano_CBT$diff > 0)
+a3 <- sum(ano_FT$diff > 0)
+c3 <- c(paste(a1,"  / ",nrow(ano_Cont)),paste(100*round(a1/nrow(ano_Cont),3),'%'),round(mean(ano_Cont$diff),2))
+c2 <- c(paste(a2,"  / ",nrow(ano_CBT)),paste(100*round(a2/nrow(ano_CBT),3),'%'),round(mean(ano_CBT$diff),2))
+c1 <- c(paste(a3,"  / ",nrow(ano_FT)),paste(100*round(a3/nrow(ano_FT),3),'%'),round(mean(ano_FT$diff),2))
+cx <- c("Patients en prise de poids","Pourcentage de reussites","Prise/Perte moyen [kg]")
+tabl1 <- data.frame(cx,c1,c2,c3)
+names(tabl1) <- c(' ','FT','CBT','Cont')
+kable(tabl1)
+```
+
+  </td>
+</tr>
+<tr>
+  <td style="width: 50%">
+<table style="text-align: justify">
+<tr>
+  <td style="padding-bottom: 70px">
+Il est important de souligner que le groupe de contrôle est en moyenne en perte de poids. Contrairement aux deux autres groupes 'FT' et 'CBT'.
+  </td>
+</tr>
+<tr>
+  <td>
+En effet, comme illustrer dans le graphique ci-contre, nous remarquons que le plus grand accroissement du poids moyen est réalisé par le groupe suivant le traitement 'FT' _Family Therapy_.
+  </td>
+</tr>
+</table>
+  </td>
+  <td style="width: 50%;padding-left: 15px">
+```{r echo=FALSE,fig.height=8,fig.width=8}
+y1 <- c( mean(ano_Cont$pre), mean(ano_Cont$post) )
+y2 <- c (mean(ano_FT$pre), mean(ano_FT$post) )
+y3 <- c (mean(ano_CBT$pre), mean(ano_CBT$post) )
+plot(c(0,0),c(0,0),xlim=c(1,2),ylim = c(min(y1,y2,y3), max(y1,y2,y3)),yaxt='n',xaxt='n',xlab = '',ylab = 'Poids [kg]',las = 1,main = "Figure II.1 - Evolution du poids moyen par traitement")
+axis(side = 1,at=c(1,2),labels=c('pre-traitement','post-traitement'))
+axis(side = 2,at=round(c(y1,y2,y3),2),las=1)
+lines(y1,col='black',lwd=2)
+lines(y2,col='red', lwd=2)
+lines(y3,col='blue', lwd=2)
+legend('topleft',c("FT","CBT","Cont"),col=c('red','blue','black'),lwd=rep(2,3))
+grid(lwd=2)
+```
+  </td>
+</tr>
+</table>
+<!-- QUESTION 3 -->
+<h4>III. Étude de l'évolution du groupe de contrôle</h4>
+<div style="padding-top: 20px;text-align: justify">
+Afin de nous permettre d'établir des conclusions relatives à la qualité des traitements 'FT' et 'CBT', il nous faut justifier le rôle de témoin du groupe de contrôle dans le cadre de cette étude.
+</div>
+<table style="width: 100%">
+<tr>
+  <td style="width: 50%">
+<table style="text-align: justify">
+<tr>
+  <td style="padding-bottom: 70px">
+Malgré les variations individuelles au sein du groupe 'Cont', les paramètres globaux et plus particulièrement la médiane, restent stable.
+  </td>
+</tr>
+<tr>
+  <td>
+Ce qui satisfait aux caractères requis au le rôle de témoin.
+  </td>
+</tr>
+</table>
+  <td style="padding-left: 15px">
+```{r echo=FALSE,warning=FALSE,fig.height=8,fig.width=8}
+boxplot(ano_Cont[,c(2,3)],col=c("lightblue","pink"),main="Evolution de groupe de controle",ylab="Poids [kg]")
+```
+  </td>
+</tr>
+</table>
+<!-- QUESTION 4 -->
+<h4>IV. Comparaisons des groupes de traitements 'FT' et 'CBT'</h4>
+<div style="text-align: justify;padding-top: 20px;padding-bottom: 45px">
+Comparons à présent les deux traitements 'FT' et 'CBT' entre eux, et analysons leurs efficacités respectives.<br>
+Dans toute cette partie, nous avons utilisé le _QQ-plot_ qui est un outil graphique permettant de comparer des distributions entre elles.<br>
+Nous avons, de plus, rajouté la premiére bissectrice au sein du graphe afin de mieux juger l'adéquation des distributions.
+</div>
+<table style="width: 100%">
+<tr>
+  <td style="width: 33.33%;padding-right: 15px">
+```{r echo=FALSE,fig.height=5.25,fig.width=5}
+hist(ano_FT$diff,freq= FALSE,main = "Groupe 'FT'",xlab="Prise de poids [kg]");
+curve(dnorm(x,mean(ano_FT$diff),sd(ano_FT$diff)),add=TRUE,col="red")
+mu <- round(mean(ano_FT$diff),2)
+sig <- round(mean(sd(ano_FT$diff),1))
+legend('topleft',lty=1,col='red',paste("N(",mu,",",sig,")"))
+```
+  </td>  
+  <td style="width: 33.33%;border-left: 1px solid black;padding-left: 15px;padding-right: 15px">
+```{r echo=FALSE,fig.height=5.25,fig.width=5}
+qqplot(ano_CBT$diff,ano_FT$diff,pch=18,main='FT / CBT',xlab = "'CBT'", ylab ="'FT'")
+abline(0,1,col='red')
+```
+  </td>
+  <td style="width: 33.33%;border-left: 1px solid black;padding-left: 15px">
+```{r echo=FALSE,fig.height=5.25,fig.width=5}
+hist(ano_CBT$diff,freq = FALSE,main="Groupe 'CBT'",xlab="Prise de poids [kg]");
+curve(dnorm(x,mean(ano_CBT$diff),sd(ano_CBT$diff)),add=TRUE,col="red")
+mu <- round(mean(ano_CBT$diff),2)
+sig <- round(mean(sd(ano_CBT$diff),1))
+legend('topright',col='red',lty=1,paste("N(",mu,",",sig,")"))
+```
+  </td>
+</tr>
+<tr>
+  <td style="width: 33.33%;padding-right: 15px;text-align: justify">
+L'adéquation entre l'histogramme et la densité n'est pas bonne.<br>
+La loi de la prise de poids n'est pas centré autour de sa moyenne comme une loi gaussienne.
+  </td>  
+  <td style="width: 33.33%;border-left: 1px solid black;text-align: justify;padding-left: 15px;padding-right: 15px">
+Nous voyons que le traitement 'FT' <br> est nettement supérieur au 'CBT'.<br> 
+Nous constatons qu'il est tout particuliérement meilleur pour les valeurs situées autour de la moyenne.
+  </td>
+  <td style="width: 33.33%;border-left: 1px solid black;text-align: justify;padding-left: 15px">
+Idemment, l'adéquation n'est pas bonne.<br>
+Le "pic" de l'histogramme est bien trop grand pour une gaussienne.
+  </td>
+</tr>
+<table style="text-align: justify;margin-bottom: 20px;margin-top: 50px">
+<tr>
+  <td>
+  </td>
+</tr>
+</table>
+<!-- QUESTION 5 -->
+<h4>V. Tentative de modélisation linéaire du traitement 'CBT'</h4>
+<table style="text-align: justify;margin-bottom: 20px;margin-top: 20px">
+<tr>
+  <td>
+Le traitement 'CBT' reste le seul traitement pouvant être produit directement et fournit par l'hôpital.<br>
+C'est pourquoi il nous intéresse de pouvoir en donner un modéle de prévision.
+  </td>
+</tr>
+</table>
+<table style="width: 100%;padding-top: 36px">
+<tr>
+  <td style="width: 50%">
+<table style="text-align: justify">
+<tr>
+  <td style="padding-bottom: 40px">
+Nous remarquons que la distribution standardisée du traitement 'CBT' oscille autour de la premiére bissectrice.<br>
+  </td>
+</tr>
+  <td style="padding-bottom: 40px">
+Ce qui n'est absolument pas suffisant pour pouvoir approcher les données issues du groupe de traitement 'CBT' par un modéle de régression gaussien.<br>
+  </td>
+</tr>
+  <td>
+Cela démontre que le traitement 'CBT' ne peut pas être modélisé a travers un modéle linéaire.  
+  </td>
+</tr>
+</table>
+  </td>
+  <td style="width: 50%;padding-left: 15px">
+```{r echo=FALSE,fig.height=8,fig.width=8}
+ano_CBT$diff.std <- (ano_CBT$diff-mean(ano_CBT$diff))/sd(ano_CBT$diff)
+qqnorm(ano_CBT$diff.std,pch=18,main='Approximation de la loi de CBT par une loi normale' )
+abline(0,1,col='red')
+```
+  </td>
+</tr>
+</table>
+<div style="text-align: justify;margin-top: 10px;padding-bottom: 50px">
+En définitive, force est de constater que, cette étude a permis de positionner le traitement 'CBT' aux regards des effets de la maladie.<br>
+Nous nous permettons ainsi de proposer un traitement 'CBT' conjugué à la thérapie 'FT'.<br>
+En effet cette étude laisse entendre que la complémentarité de ces deux thérapies ne peut être que meilleure face à l'anorexie. Cependant, afin de valider définitivement les conclusions de cette étude, il serait souhaitable d'élargir l'échantillon et que les groupes soient équitablement répartis. 
+</div>
+<br>
